@@ -17,7 +17,7 @@ class GCN(Chain):
         return self.conv0_1(self.conv0_0(x)) + self.conv1_1(self.conv1_0(x))
 
 class reduction(Chain):
-    def __init__(self, in_channels, out_channels, pooling=F.average_pooling_2d, activation=F.leaky_relu):
+    def __init__(self, in_channels, out_channels, pooling=F.max_pooling_2d, activation=F.leaky_relu):
         super(reduction, self).__init__()
         with self.init_scope():
             convOutChannels = (out_channels - in_channels) / 2
@@ -103,34 +103,24 @@ class model(Chain):
     def __init__(self):
         super(model, self).__init__()
         with self.init_scope():
-            # self.conv0 = L.Convolution2D(3, 64, ksize=3, stride=2)
-            self.conv0 = GCN(3, 64)
-            for i in range(1, 6):
-                self.add_link(f"conv{i}", reduction(2**i*32, 2**i*64))
-            self.inception = Inception(2048, 2048)
+            self.conv0 = L.Convolution2D(3, 64, ksize=3, stride=2)
+            n=0
+            for i in range(6):
+                for i in range(3):
+                    n+=1
+                    self.add_link(f"conv{n}", Inception(2**i*32, 2**i*64))
+                n+=1
+                self.add_link(f"conv{n}", reduction(2**i*32, 2**i*64))
+            self.n = n
 
-            self.conv_ = L.Convolution2D(64, 3, ksize=1)
-            
     
     def __call__(self, x):
-        shape = [x.shape]
         h = self.conv0(x)
-        shape.append(h.shape)
         h = F.leaky_relu(h)
-        h_ = [h]
-
-        for i in range(1, 6):
+        for i in range(1, self.n):
             h = self[f"conv{i}"](h)
-            h_.append(h)
-            shape.append(h.shape)
-
-        for i in range(5):
-            h = self.inception(h)
         
-        for i in range(5,-1,-1):
-            h = self[f"dc{i}"](h, h_[i])[:,:,1:shape[i][2],1:shape[i][3]]
-        
-        h = self.conv_(h)
+        h = F.spatial_pyramid_pooling_2d(h, 5)
 
         return h
 
