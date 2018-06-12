@@ -111,6 +111,8 @@ class Model(Chain):
                     self.add_link(f"conv{n}", Inception(2**i*32, 2**i*64))
                 n+=1
                 self.add_link(f"conv{n}", reduction(2**i*32, 2**i*64))
+            self.l0 = L.Linear(, 1000)
+            self.l1 = L.Linear(1000, 20)
             self.n = n
 
     
@@ -121,6 +123,8 @@ class Model(Chain):
             h = self[f"conv{i}"](h)
         
         h = F.spatial_pyramid_pooling_2d(h, 5)
-
+        h = self.l0(h)
+        h = F.leaky_relu(h)
+        h = self.l1(h)
         return h
 
