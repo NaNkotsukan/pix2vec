@@ -4,7 +4,7 @@ from PIL import Image
 import os
 import pickle
 
-class eshi:
+class Eshi:
     def __init__(self, path, id):
         self.id = id
         self.imageList = os.listdir(f"{path}/{id}")
@@ -31,13 +31,13 @@ class eshi:
         return [np.transpose(np.asarray(Image.open(f"{self.path}{next(self.getID)}").convert("RGB")),(2,0,1)) for _ in range(n)]
 
 
-class data:
+class Data:
     def __init__(self, path):
         self.load = np.loadtxt("list.txt", dtype=np.int, delimiter=",")
         self.load = self.load[self.load[:,1]>20, 0]
         print(self.load)
         print(self.load.shape)
-        self.eshiList = [eshi(path, x) for x in self.load]
+        self.eshiList = [Eshi(path, x) for x in self.load]
         self.getEshi = self.genEshi()
     
     def genEshi(self):
@@ -60,7 +60,7 @@ class data:
 
 def main():
     path = "D:/data/dataset/illust/pixiv_images"
-    hoge = data(path)
+    hoge = Data(path)
     with open('data.pickle', 'wb') as f:
         pickle.dump(hoge, f)
 

@@ -99,9 +99,9 @@ class Inception1(Chain):
         return h
 
 
-class model(Chain):
+class Model(Chain):
     def __init__(self):
-        super(model, self).__init__()
+        super(Model, self).__init__()
         with self.init_scope():
             self.conv0 = L.Convolution2D(3, 64, ksize=3, stride=2)
             n=0
