@@ -20,11 +20,11 @@ class reduction(Chain):
     def __init__(self, in_channels, out_channels, pooling=F.max_pooling_2d, activation=F.leaky_relu):
         super(reduction, self).__init__()
         with self.init_scope():
-            convOutChannels = (out_channels - in_channels) / 2
+            convOutChannels = (out_channels - in_channels) // 2
             # self.conv0 = L.Convolution2D(in_channels, out_channels , ksize=3, stride=2)
             self.conv0 = GCN(in_channels, convOutChannels)
             self.conv1 = L.Convolution2D(in_channels, in_channels, ksize=1)
-            self.conv2 = L.Convolution2D(in_channels, convOutChannels / 2, ksize=3, pad=1)
+            self.conv2 = L.Convolution2D(in_channels, convOutChannels // 2, ksize=3, pad=1)
             self.conv3 = GCN(convOutChannels, convOutChannels, ksize=3, stride=2)
         self.pooling = pooling
         self.activation = activation
@@ -111,13 +111,13 @@ class Model(Chain):
                     self.add_link(f"conv{n}", Inception(2**i*32, 2**i*64))
                 n+=1
                 self.add_link(f"conv{n}", reduction(2**i*32, 2**i*64))
-            self.l0 = L.Linear(, 1000)
+            self.l0 = L.Linear(2000, 1000)
             self.l1 = L.Linear(1000, 20)
             self.n = n
 
-    
     def __call__(self, x):
-        h = self.conv0(x)
+        h = x.reshape(tuple((1,)) + x.shape)
+        h = self.conv0(h)
         h = F.leaky_relu(h)
         for i in range(1, self.n):
             h = self[f"conv{i}"](h)

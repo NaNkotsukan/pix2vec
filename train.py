@@ -7,11 +7,12 @@ from data import Data, Eshi
 import pickle
 from concurrent.futures import ThreadPoolExecutor
 
-class train:
+class Train:
     def __init__(self):
         with open("data.pickle", "rb") as f:
             self.data = pickle.load(f)
         self.model = Model()
+        self.model.to_gpu()
         self.optimizer = Adam()
         self.optimizer.setup(self.model)
 
@@ -20,13 +21,16 @@ class train:
         self.hoge = self.data.next(2, 2)
     
     def load(self):
-        d = self.hoge.result()
+        d = self.hoge
         self.hoge = self.executor.submit(self.data.next, 2, 2)
         return d
 
     def training(self):
-        for i in range(100000000000000000000000):
-            self.batch()
+        for i in range(1000000000000000):
+            a = self.batch()
+            if i%100==0:
+                print(f"{i} loss:{a}")
+
         
     def batch(self):
         a, b = self.load()
@@ -38,4 +42,12 @@ class train:
                F.contrastive(y[1], y[3], [0]) 
         loss.backward()
         self.optimizer.update()
-    
+        return loss.data.get()
+
+
+def main():
+    train = Train()
+    train.training()
+
+if __name__ == '__main__':
+    main()

@@ -3,6 +3,8 @@ import numpy as np
 from PIL import Image
 import os
 import pickle
+import cupy as cp
+
 
 class Eshi:
     def __init__(self, path, id):
@@ -28,7 +30,7 @@ class Eshi:
     def next(self, n):
         # Image.open(f"/illust/{self.id}/{next(self.getID)}")
         # np.transpose(np.array(Image.open(f"/illust/{self.id}/{next(self.getID)}"))[:,:,:3],(2,0,1))
-        return [np.transpose(np.asarray(Image.open(f"{self.path}{next(self.getID)}").convert("RGB")),(2,0,1)) for _ in range(n)]
+        return [cp.asarray(np.transpose(np.asarray(Image.open(f"{self.path}{next(self.getID)}").convert("RGB")),(2,0,1)),dtype=cp.float32)/255 for _ in range(n)]
 
 
 class Data:
